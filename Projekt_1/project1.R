@@ -136,32 +136,43 @@ lines(exp(model2$fit)~age, data=data.logRet, col='red')
 
 plot(exp(model2$fit)~age, data=data.logRet, col='red')
 
-# Since the values of beta1*age_i range between such low values, the correlation between age and ret almost linear. 
+# Since the values of beta1*age_i range between such low values, the dependency between age and ret almost linear.
+# Although the dependency is actually exponential. 
 
 # Calculate the 95 % confidence interval for the expected log Plasma Retinol for ages 18,. . . ,85 and
 # transform it into the original scale. Add it to the plot of the data, Any major differences compared to
 # the previous model? Why or why not?
 
 new_data <- data.frame(age = 18:85)
-prediction <- exp(predict(model2, new_data, interval='confidence'))
+prediction3 <- exp(predict(model2, new_data, interval='confidence'))
 with(data, plot(retplasma ~ age, 
                 xlab="Age", ylab="Plasma Retinol",
                 xlim=c(l_lim_x,u_lim_x), ylim=c(l_lim_y,u_lim_y), main="Age and log Retinol"))
+# Confidence intervals without transformation
 lines(prediction[,1]~new_data$age,col="green", lwd=1.5)
 lines(prediction[,2]~new_data$age,col="red", lwd=1.5, lty=3)
 lines(prediction[,3]~new_data$age,col="red", lwd=1.5, lty=3)
+# Confidence intervals with transformation
+lines(prediction3[,1]~new_data$age,col="pink", lwd=1.5)
+lines(prediction3[,2]~new_data$age,col="blue", lwd=1.5, lty=3)
+lines(prediction3[,3]~new_data$age,col="blue", lwd=1.5, lty=3)
 
 # Calculate the 95 % prediction interval for the expected log Plasma Retinol for ages 18,. . . ,85, transform
 # it into the original scale and add it to the plot. Do you find any problems here now? Any major
 # differences compared to the previous model?
 
-prediction2 <- exp(predict(model2, new_data, interval='prediction'))
+prediction4 <- exp(predict(model2, new_data, interval='prediction'))
 with(data, plot(retplasma ~ age, 
                 xlab="Age", ylab="Plasma Retinol",
                 xlim=c(l_lim_x,u_lim_x), ylim=c(l_lim_y,u_lim_y), main="Age and Retinol"))
+# Confidence intervals without transformation
 lines(prediction2[,1]~new_data$age,col="green", lwd=1.5)
 lines(prediction2[,2]~new_data$age,col="red", lwd=1.5, lty=3)
 lines(prediction2[,3]~new_data$age,col="red", lwd=1.5, lty=3)
+# Confidence intervals with transformation
+lines(prediction4[,1]~new_data$age,col="pink", lwd=1.5)
+lines(prediction4[,2]~new_data$age,col="blue", lwd=1.5, lty=3)
+lines(prediction4[,3]~new_data$age,col="blue", lwd=1.5, lty=3)
 
 # Report a 95 % prediction interval for the observed Plasma Retinol of a 30 year old person, as well a
 # for a 70 year old person. Are there any substantial differences in the widths of the two intervals? Why
