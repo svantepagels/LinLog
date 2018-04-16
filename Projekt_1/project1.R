@@ -83,3 +83,91 @@ abs(thirty[,2]-thirty[,3]) # Width of confidence interval
 seventy <- predict(model, data.frame(age=70), interval='prediction')
 abs(seventy[,2]-seventy[,3]) # Width of confidence interval
 
+#########################################################################################################
+#########################################################################################################
+# 3.2 log PLasma Retinol and Age
+
+# Investigate whether taking the logarithm of the Plasma Retinol might improve the model fit and reduce
+# the problems with the residuals by fitting the new model log(retplasma) = ??0 + ??1 ?? age + ??. Report
+# the estimates and their confidence intervals. Are they significant?
+
+# Taking adding a column in data for logarithm Plasma Retinol
+data.logRet <- data
+data.logRet$logRet <- log(data$retplasma)
+
+# Plot
+with(data.logRet, plot(logRet ~ age, 
+                xlab="Age", ylab="log Plasma Retinol",
+                main="log Retinol and Age"))
+
+# Linear fit
+model2 <- lm(logRet ~ age, data = data.logRet)  
+summary(model2)
+confint(model2)
+abline(model2, col='blue')
+
+# Investigate the new residuals. Do they fulfill the model assumptions? Did the transformation solve the
+# problems?
+
+residuals2 <- resid(model2)
+
+plot(residuals2~model2$fit) # Check eventaul dependency against fit
+abline(h=0, col='red')
+
+hist(residuals2, breaks = 20)
+abline(v=mean(residuals2), col='red', lty=3, lwd=3) # Slightly skewed residuals
+
+# Check normality 
+qqnorm(residuals2)
+qqline(residuals2) 
+
+# The residuals seem to have improved but do still exhibit fatter tails than a normal distribution.
+
+
+# Write down how Plasma retinol depends on age and plot the data again, adding this new, non-linear,
+# fit. What happens, on average, to the Plasma Retinal level if we increase the age by 1 year? Calculate a
+# 95 % confidence interval for this change. Does the size of the change (in ng/ml) depend on the age?
+
+# Plot exp( fitted values ) against age
+with(data, plot(retplasma ~ age, 
+                xlab="Age", ylab="Plasma Retinol",
+                xlim=c(l_lim_x,u_lim_x), ylim=c(l_lim_y,u_lim_y), main="Title"))
+lines(exp(model2$fit)~age, data=data.logRet, col='red')
+
+plot(exp(model2$fit)~age, data=data.logRet, col='red')
+
+# Since the values of beta1*age_i range between such low values, the correlation between age and ret almost linear. 
+
+# Calculate the 95 % confidence interval for the expected log Plasma Retinol for ages 18,. . . ,85 and
+# transform it into the original scale. Add it to the plot of the data, Any major differences compared to
+# the previous model? Why or why not?
+
+new_data <- data.frame(age = 18:85)
+prediction <- exp(predict(model2, new_data, interval='confidence'))
+with(data, plot(retplasma ~ age, 
+                xlab="Age", ylab="Plasma Retinol",
+                xlim=c(l_lim_x,u_lim_x), ylim=c(l_lim_y,u_lim_y), main="Age and log Retinol"))
+lines(prediction[,1]~new_data$age,col="green", lwd=1.5)
+lines(prediction[,2]~new_data$age,col="red", lwd=1.5, lty=3)
+lines(prediction[,3]~new_data$age,col="red", lwd=1.5, lty=3)
+
+# Calculate the 95 % prediction interval for the expected log Plasma Retinol for ages 18,. . . ,85, transform
+# it into the original scale and add it to the plot. Do you find any problems here now? Any major
+# differences compared to the previous model?
+
+prediction2 <- exp(predict(model2, new_data, interval='prediction'))
+with(data, plot(retplasma ~ age, 
+                xlab="Age", ylab="Plasma Retinol",
+                xlim=c(l_lim_x,u_lim_x), ylim=c(l_lim_y,u_lim_y), main="Age and Retinol"))
+lines(prediction2[,1]~new_data$age,col="green", lwd=1.5)
+lines(prediction2[,2]~new_data$age,col="red", lwd=1.5, lty=3)
+lines(prediction2[,3]~new_data$age,col="red", lwd=1.5, lty=3)
+
+# Report a 95 % prediction interval for the observed Plasma Retinol of a 30 year old person, as well a
+# for a 70 year old person. Are there any substantial differences in the widths of the two intervals? Why
+# or why not?
+
+thirty <- exp(predict(model2, data.frame(age=30), interval='prediction'))
+abs(thirty[,2]-thirty[,3]) # Width of confidence interval
+seventy <- exp(predict(model2, data.frame(age=70), interval='prediction'))
+abs(seventy[,2]-seventy[,3]) # Width of confidence interval
