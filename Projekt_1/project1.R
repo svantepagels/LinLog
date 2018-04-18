@@ -122,6 +122,7 @@ qqnorm(residuals2)
 qqline(residuals2) 
 
 # The residuals seem to have improved but do still exhibit fatter tails than a normal distribution.
+# Modelling residuals as student-t distributed could be a good approach to get rid of this. 
 
 
 # Write down how Plasma retinol depends on age and plot the data again, adding this new, non-linear,
@@ -182,3 +183,9 @@ thirty <- exp(predict(model2, data.frame(age=30), interval='prediction'))
 abs(thirty[,2]-thirty[,3]) # Width of confidence interval
 seventy <- exp(predict(model2, data.frame(age=70), interval='prediction'))
 abs(seventy[,2]-seventy[,3]) # Width of confidence interval
+
+# R-squared scores - for fun
+summary(model2)[8]
+summary(model2)[9]
+summary(model)[8]
+summary(model)[9]
