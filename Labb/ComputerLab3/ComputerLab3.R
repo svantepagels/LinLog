@@ -123,7 +123,9 @@ sum(count(which(D>4/nrow(cdi)))$freq) # 27 little try-hards have Cook's distance
 #Calculate the DFBETAj and plot each one of them. Which of the ??-parameters have been most
 #influenced by the problematic counties?
 
-
-
-
+dfb <- dfbetas(model.4)
+plot(dfb[,1]) # King's increase the intercept strongly
+plot(dfb[,2]) 
+plot(dfb[,3]) # Kings's decrease crime rate strongly
+plot(dfb[,4])
 
