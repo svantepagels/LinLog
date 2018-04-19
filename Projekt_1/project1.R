@@ -194,3 +194,27 @@ summary(model)[9]
 ###################################################################################################
 #                                          3.3                                                    #
 ###################################################################################################
+
+# Fit a model using the background variables (age, sex, smokstat and quetelet), report the parameter
+# estimates and their corresponding 95 % confidence intervals. Also determine whether all the
+# variables have a significant contribution to the model.
+# Use the fitted model to construct an interval that would be expected to contain 95 % of the Plasma
+# beta-carotene values of persons that are 50 years old, male, have never smoked and have a BMI of 30.
+
+# Fit a model using the dietary factors (vituse, calories, fat, fiber, alcohol, cholesterol and betadiet) instead.
+# Are all the variables significant? If not, use a stepwise procedure to reduce the model. 
+# Report the parameter estimates and the corresponding confidence intervals of the reduced
+# model. Use the reduced model to construct an interval that would be expected to contain 95 % of the Plasma
+# beta-carotene values of persons that never eat vitamins, consume 1200 calories, 50 grams of fat,
+# 20 grams of fiber, no alcohol, 300 mg cholesterol and 1500 mcg dietary beta-carotene per day.
+
+# We now have two competing models, the background variables model in (a) and the (reduced)
+# dietary factors model in (b). Compare the two models regarding, e.g., their ability to explain the
+# variability in Plasma beta-carotene. Which model seems best?
+# Try to find a better model using both some of the background variables and some of the dietary factors.
+# Compare its ability to explain the variability to the models from (a) and (b).
+
+# Now we turn our attention to the, possibly, problematic extreme alcohol consumer by investigating
+# the leverage, studentized residuals, Cook???s distance and DFbetas of the (reduced) dietary factors model
+# in (b). Has the person had any problematic influence on the model estimates? Are there any other
+# persons that have had a problematic influence?
