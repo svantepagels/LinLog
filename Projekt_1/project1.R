@@ -1,5 +1,8 @@
 # Project 1
 library(readxl)
+library(dplyr)
+library(GGally)
+library(ggplot2)
 raw <- read_excel("./data_project1.xlsx")
 data <- as.data.frame(raw)
 
@@ -196,18 +199,100 @@ summary(model)[9]
 #                                          3.3                                                    #
 ###################################################################################################
 
+# a) 
+model3 <- lm(betaplasma ~ age, data = data)
+residuals3 <- resid(model3)
+hist(residuals3)
+
+newdata <- subset(data, betaplasma>0)
+model3.2 <- lm(log(betaplasma) ~ age, data = newdata)
+residuals3.2 <- resid(model3.2)
+hist(residuals3.2)
+
+# b) 
+newdata$smokstat <- factor(newdata$smokstat, levels=c(1,2,3), 
+                           labels = c('never', 'former', 'current'))
+model3.3 <- lm(betaplasma ~ smokstat, data = newdata)
+summary(model3.3)
+
+model3.4 <- lm(betaplasma ~ relevel(smokstat, ref = 3), data = newdata)
+summary(model3.4)
+
+# Standard error increased. Fewer smokers lead to more uncertainty. 
+
+newdata$sex <- factor(newdata$sex, levels=c(1,2), 
+                           labels = c('male', 'female'))
+model3.5 <- lm(betaplasma ~ sex, data = newdata)
+summary(model3.5)
+
+model3.6 <- lm(betaplasma ~ relevel(sex, ref = 2), data = newdata)
+summary(model3.6)
+
+# Female has lower st error
+
+newdata$vituse <- factor(newdata$vituse, levels=c(1,2,3), 
+                           labels = c('often', 'not often', 'no'))
+model3.7 <- lm(betaplasma ~ vituse, data = newdata)
+summary(model3.7)
+
+model3.8 <- lm(betaplasma ~ relevel(vituse, ref = 2), data = newdata)
+summary(model3.8)
+
+model3.9 <- lm(betaplasma ~ relevel(vituse, ref = 3), data = newdata)
+summary(model3.9)
+
+# Often or no should be chosen
+
+# c)
+with(data=newdata, plot(log(betaplasma) ~ alcohol) )
+
+# Problem: outlier. Bad idea since many users do not consume alcohol. 
+
+newdata$id <- c(1:nrow(newdata))
+newdata$alcohol <- as.double(newdata$alcohol) 
+outlier <- newdata[which(newdata$alcohol>200), 15] # Outlier is 62
+
+newdata$calories <- as.double(newdata$calories)
+with(data=newdata, plot(log(betaplasma) ~ calories) )
+points(newdata$calories[outlier],log(newdata$betaplasma[outlier]),col="green", pch=19)
+
+newdata$quetelet <- as.double(newdata$quetelet) 
+with(data=newdata, plot(log(betaplasma) ~ quetelet) )
+points(newdata$quetelet[outlier],log(newdata$betaplasma[outlier]),col="green", pch=19)
+
+newdata$fat <- as.double(newdata$fat) 
+with(data=newdata, plot(log(betaplasma) ~ fat) )
+points(newdata$fat[outlier],log(newdata$betaplasma[outlier]),col="green", pch=19)
+
+newdata$fiber <- as.double(newdata$fiber) 
+with(data=newdata, plot(log(betaplasma) ~ fiber) )
+points(newdata$fiber[outlier],log(newdata$betaplasma[outlier]),col="green", pch=19)
+
+
+# Continuos explanatory variables: age, quetelet, calories, fat, fiber, alcohol, cholesterol, betadiet
+newdata$age <- as.double(newdata$age)
+newdata$cholesterol <- as.double(newdata$cholesterol)
+newdata$betadiet <- as.double(newdata$betadiet)
+
+lin_rel <- newdata %>% select(-sex, -vituse, -smokstat, -retplasma, -retdiet, -retplasma, -id)
+ggpairs(lin_rel, mapping=ggplot2::aes(colour='blue'))
+
+
+###################################################################################################
+#                                          3.4                                                    #
+###################################################################################################
+
 # Fit a model using the background variables (age, sex, smokstat and quetelet), report the parameter
 # estimates and their corresponding 95 % confidence intervals. Also determine whether all the
 # variables have a significant contribution to the model.
 # Use the fitted model to construct an interval that would be expected to contain 95 % of the Plasma
 # beta-carotene values of persons that are 50 years old, male, have never smoked and have a BMI of 30.
 
-data.logRet$quetelet <- as.double(data.logRet$quetelet) # Fix quetelet from char to  double
-model3 <- lm(betaplasma ~ age+sex+smokstat+quetelet, data = data.logRet) # Logarithm? Check? 
-summary(model3) # Only intercept, smokstat and quetlet are significant
+model4 <- lm(log(betaplasma) ~ age+sex+smokstat+quetelet, data = newdata) 
+summary(model4) # Only smokstat-former not significant
 
-new_data <- data.frame(age = 50, sex=1, smokstat=1, quetelet=30)
-predict(model3, new_data, interval='confidence')
+new_data <- data.frame(age = 50, sex='male', smokstat='never', quetelet=30)
+exp(predict(model4, new_data, interval='confidence'))
 
 # Fit a model using the dietary factors (vituse, calories, fat, fiber, alcohol, cholesterol and betadiet) instead.
 # Are all the variables significant? If not, use a stepwise procedure to reduce the model. 
@@ -216,17 +301,112 @@ predict(model3, new_data, interval='confidence')
 # beta-carotene values of persons that never eat vitamins, consume 1200 calories, 50 grams of fat,
 # 20 grams of fiber, no alcohol, 300 mg cholesterol and 1500 mcg dietary beta-carotene per day.
 
+model4.1 <- lm(log(betaplasma) ~vituse+calories+fat+fiber+alcohol+cholesterol+betadiet, data = newdata) 
+summary(model4.1)
+model4.2 <- lm(log(betaplasma) ~1, data = newdata) 
+
+model4.reduced <- step(model4.1,scope=list(lower=model4.2, upper=model4.1),k=log(nrow(newdata)))
+summary(model4.reduced)
+
+# Best model: log(betaplasma) ~ vituse + calories + fiber
+
+new_data <- data.frame(vituse='no', calories=1200, fiber=20)
+exp(predict(model4.reduced, new_data, interval='confidence'))
+
 # We now have two competing models, the background variables model in (a) and the (reduced)
 # dietary factors model in (b). Compare the two models regarding, e.g., their ability to explain the
 # variability in Plasma beta-carotene. Which model seems best?
 # Try to find a better model using both some of the background variables and some of the dietary factors.
 # Compare its ability to explain the variability to the models from (a) and (b).
 
+summary(model4)[8]
+summary(model4)[9]
+summary(model4.reduced)[8]
+summary(model4.reduced)[9]
+
+model4.3 <- lm(log(betaplasma) ~vituse+calories+fat+fiber+alcohol+cholesterol+betadiet+age+sex+smokstat+quetelet, 
+               data = newdata) 
+summary(model4.3)
+
+model4.reduced.2 <- step(model4.3,scope=list(lower=model4.1, upper=model4.3),k=log(nrow(newdata)))
+summary(model4.reduced.2)
+summary(model4.reduced)
+AIC(model4.reduced.2, model4.reduced, k=log(nrow(newdata)))
+AIC(model4.reduced.2, model4.reduced)
+
 # Now we turn our attention to the, possibly, problematic extreme alcohol consumer by investigating
 # the leverage, studentized residuals, Cook???s distance and DFbetas of the (reduced) dietary factors model
 # in (b). Has the person had any problematic influence on the model estimates? Are there any other
 # persons that have had a problematic influence?
 
+# Plotting leverage against i and all the X's
+v <- hatvalues(model4.reduced) # leverage
+plot(v)
+points(outlier,v[outlier],col="green", pch=19) # Big impact on leverage
+plot(v~newdata$vituse)
+points(newdata$vituse[outlier],v[outlier],col="green", pch=19) 
+plot(v~newdata$calories)
+points(newdata$calories[outlier],v[outlier],col="green", pch=19) # Likely due to imense calory intake
+plot(v~newdata$fiber)
+points(newdata$fiber[outlier],v[outlier],col="green", pch=19) 
+
+which(v > 0.07) # 51, 263 potential problematic
+
+# Studentised residuals, plotted against i and independent variables
+r_stud <- rstudent(model4.reduced) # studentised residuals
+plot(r_stud, xlab='i', ylab='Studentised res')
+abline(h=0)
+abline(h=c(-2,2),col="red")
+points(outlier,r_stud[outlier],col="green", pch=19) 
+
+which(r_stud < -3) # 233 potential problematic
+
+plot(r_stud~newdata$vituse)
+abline(h=0)
+abline(h=c(-2,2),col="red")
+points(newdata$vituse[outlier],r_stud[outlier],col="green", pch=19) 
+
+plot(r_stud~newdata$calories)
+abline(h=0)
+abline(h=c(-2,2),col="red")
+points(newdata$calories[outlier],r_stud[outlier],col="green", pch=19) 
+
+plot(r_stud~newdata$fiber)
+abline(h=0)
+abline(h=c(-2,2),col="red")
+points(newdata$fiber[outlier],r_stud[outlier],col="green", pch=19)
+
+# Cook's distance
+D <- cooks.distance(model4.reduced)
+plot(D)
+points(outlier,D[outlier],col="green", pch=19)
+abline(h=4/nrow(newdata), col='red') # Limit for large datasets
+
+which(D > 0.03) # Potential problematic: 97, 233
+
+# DFbetas
+
+dfb <- dfbetas(model4.reduced)
+plot(dfb[,1]) 
+points(outlier,dfb[outlier,1],col="green", pch=19) # Our alcoholic friend has big impact
+which(abs(dfb[,1]) > 0.2) # 139 185 208 215 
+plot(dfb[,2]) 
+points(outlier,dfb[outlier,2],col="green", pch=19)
+which(abs(dfb[,2]) > 0.2) #  35 233 262 
+plot(dfb[,3]) 
+points(outlier,dfb[outlier,3],col="green", pch=19)
+which(abs(dfb[,3]) > 0.2) # 185 208 
+plot(dfb[,4])
+points(outlier,dfb[outlier,4],col="green", pch=19) # Our alcoholic friend has big impact
+which(abs(dfb[,4]) > 0.2) # 35 97 
+plot(dfb[,5])
+points(outlier,dfb[outlier,5],col="green", pch=19) # Our alcoholic friend has big impact
+which(abs(dfb[,5]) > 0.3) # 97 263
+
+# Potential problematic other observations: 
+# * 263 - high leverage, affecting beta4
+# * 233 - high Cook's distance and unlikely studentised quantile, affecting beta1
+# * 97 - high Cook's distance, affecting beta4
 
 
 ### Notes ###
