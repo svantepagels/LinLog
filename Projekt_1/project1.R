@@ -83,9 +83,10 @@ abs(thirty[,2]-thirty[,3]) # Width of confidence interval
 seventy <- predict(model, data.frame(age=70), interval='prediction')
 abs(seventy[,2]-seventy[,3]) # Width of confidence interval
 
-#########################################################################################################
-#########################################################################################################
-# 3.2 log PLasma Retinol and Age
+###################################################################################################
+#                                          3.2                                                    #
+###################################################################################################
+
 
 # Investigate whether taking the logarithm of the Plasma Retinol might improve the model fit and reduce
 # the problems with the residuals by fitting the new model log(retplasma) = ??0 + ??1 ?? age + ??. Report
@@ -189,3 +190,7 @@ summary(model2)[8]
 summary(model2)[9]
 summary(model)[8]
 summary(model)[9]
+
+###################################################################################################
+#                                          3.3                                                    #
+###################################################################################################
