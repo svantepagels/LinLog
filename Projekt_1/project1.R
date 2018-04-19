@@ -1,4 +1,5 @@
 # Project 1
+library(readxl)
 raw <- read_excel("./data_project1.xlsx")
 data <- as.data.frame(raw)
 
@@ -201,6 +202,13 @@ summary(model)[9]
 # Use the fitted model to construct an interval that would be expected to contain 95 % of the Plasma
 # beta-carotene values of persons that are 50 years old, male, have never smoked and have a BMI of 30.
 
+data.logRet$quetelet <- as.double(data.logRet$quetelet) # Fix quetelet from char to  double
+model3 <- lm(betaplasma ~ age+sex+smokstat+quetelet, data = data.logRet) # Logarithm? Check? 
+summary(model3) # Only intercept, smokstat and quetlet are significant
+
+new_data <- data.frame(age = 50, sex=1, smokstat=1, quetelet=30)
+predict(model3, new_data, interval='confidence')
+
 # Fit a model using the dietary factors (vituse, calories, fat, fiber, alcohol, cholesterol and betadiet) instead.
 # Are all the variables significant? If not, use a stepwise procedure to reduce the model. 
 # Report the parameter estimates and the corresponding confidence intervals of the reduced
@@ -218,3 +226,8 @@ summary(model)[9]
 # the leverage, studentized residuals, Cook???s distance and DFbetas of the (reduced) dietary factors model
 # in (b). Has the person had any problematic influence on the model estimates? Are there any other
 # persons that have had a problematic influence?
+
+
+
+### Notes ###
+# Interperting QQ-plot https://www.youtube.com/watch?v=-KXy4i8awOg&t=1s
