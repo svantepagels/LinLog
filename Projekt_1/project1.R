@@ -6,6 +6,10 @@ library(ggplot2)
 raw <- read_excel("./data_project1.xlsx")
 data <- as.data.frame(raw)
 
+###################################################################################################
+#                                          3.1                                                    #
+###################################################################################################
+
 # We want to model how Plasma Retinol varies with Age. 
 # Plot them against each other and determine, visualy, whether a linear relationship might be appropriate.
 min_retplasma <- min(data$retplasma)
@@ -20,7 +24,7 @@ u_lim_x <- max_age * 1.1
 
 with(data, plot(retplasma ~ age, 
                     xlab="Age", ylab="Plasma Retinol",
-                    xlim=c(l_lim_x,u_lim_x), ylim=c(l_lim_y,u_lim_y), main="Title"))
+                    xlim=c(l_lim_x,u_lim_x), ylim=c(l_lim_y,u_lim_y)))
 
 # Fit the model retplasma = ??0 + ??1 ?? age + ?? and report the ??-estimates together with their 95% confidence intervals.
 # Are the parameters significant?
@@ -41,13 +45,13 @@ confint(model)[2,]
 residuals <- resid(model)
 plot(residuals) # Check randomly scattered around zero
 
-plot(residuals~data$age) # Check eventual dependency against age
+plot(residuals~data$age, xlab='Age', ylab='Residuals') # Check eventual dependency against age
 abline(h=0, col='red')
 
 plot(residuals~model$fit) # Check eventaul dependency against fit
 abline(h=0, col='red')
 
-hist(residuals, breaks = 20)
+hist(residuals, breaks = 20, xlab='Residuals')
 abline(v=mean(residuals), col='red', lty=3, lwd=3) # Slightly skewed residuals
 
 # Check normality 
@@ -116,10 +120,10 @@ abline(model2, col='blue')
 
 residuals2 <- resid(model2)
 
-plot(residuals2~model2$fit) # Check eventaul dependency against fit
+plot(residuals2~model2$fit, ylab='Residuals', xlab='Fitted values') # Check eventaul dependency against fit
 abline(h=0, col='red')
 
-hist(residuals2, breaks = 20)
+hist(residuals2, breaks = 20, xlab='Residuals', main='Histogram of residuals')
 abline(v=mean(residuals2), col='red', lty=3, lwd=3) # Slightly skewed residuals
 
 # Check normality 
@@ -202,12 +206,12 @@ summary(model)[9]
 # a) 
 model3 <- lm(betaplasma ~ age, data = data)
 residuals3 <- resid(model3)
-hist(residuals3)
+hist(residuals3, breaks=20, xlab='Residuals', main='Histogram of residuals')
 
 newdata <- subset(data, betaplasma>0)
 model3.2 <- lm(log(betaplasma) ~ age, data = newdata)
 residuals3.2 <- resid(model3.2)
-hist(residuals3.2)
+hist(residuals3.2, breaks=20, xlab='Residuals', main='Histogram of residuals')
 
 # b) 
 newdata$smokstat <- factor(newdata$smokstat, levels=c(1,2,3), 
@@ -217,6 +221,9 @@ summary(model3.3)
 
 model3.4 <- lm(betaplasma ~ relevel(smokstat, ref = 3), data = newdata)
 summary(model3.4)
+
+model3.4.1 <- lm(betaplasma ~ relevel(smokstat, ref = 2), data = newdata)
+summary(model3.4.1)
 
 # Standard error increased. Fewer smokers lead to more uncertainty. 
 
@@ -228,7 +235,7 @@ summary(model3.5)
 model3.6 <- lm(betaplasma ~ relevel(sex, ref = 2), data = newdata)
 summary(model3.6)
 
-# Female has lower st error
+# 'female' has lower st error, since more prevailent. 
 
 newdata$vituse <- factor(newdata$vituse, levels=c(1,2,3), 
                            labels = c('often', 'not often', 'no'))
@@ -241,10 +248,10 @@ summary(model3.8)
 model3.9 <- lm(betaplasma ~ relevel(vituse, ref = 3), data = newdata)
 summary(model3.9)
 
-# Often or no should be chosen
+# 'often' or 'no' should be chosen
 
 # c)
-with(data=newdata, plot(log(betaplasma) ~ alcohol) )
+with(data=newdata, plot(log(betaplasma) ~ alcohol, ylab='log beta-carotene', xlab='Alcohol consumption') )
 
 # Problem: outlier. Bad idea since many users do not consume alcohol. 
 
@@ -252,20 +259,22 @@ newdata$id <- c(1:nrow(newdata))
 newdata$alcohol <- as.double(newdata$alcohol) 
 outlier <- newdata[which(newdata$alcohol>200), 15] # Outlier is 62
 
+par(mfrow=c(2,2)) # Combine the four plots bellow
+
 newdata$calories <- as.double(newdata$calories)
-with(data=newdata, plot(log(betaplasma) ~ calories) )
+with(data=newdata, plot(log(betaplasma) ~ calories, ylab='log beta-carotene') )
 points(newdata$calories[outlier],log(newdata$betaplasma[outlier]),col="green", pch=19)
 
 newdata$quetelet <- as.double(newdata$quetelet) 
-with(data=newdata, plot(log(betaplasma) ~ quetelet) )
+with(data=newdata, plot(log(betaplasma) ~ quetelet, ylab='log beta-carotene') )
 points(newdata$quetelet[outlier],log(newdata$betaplasma[outlier]),col="green", pch=19)
 
 newdata$fat <- as.double(newdata$fat) 
-with(data=newdata, plot(log(betaplasma) ~ fat) )
+with(data=newdata, plot(log(betaplasma) ~ fat, ylab='log beta-carotene') )
 points(newdata$fat[outlier],log(newdata$betaplasma[outlier]),col="green", pch=19)
 
 newdata$fiber <- as.double(newdata$fiber) 
-with(data=newdata, plot(log(betaplasma) ~ fiber) )
+with(data=newdata, plot(log(betaplasma) ~ fiber, ylab='log beta-carotene') )
 points(newdata$fiber[outlier],log(newdata$betaplasma[outlier]),col="green", pch=19)
 
 
@@ -275,7 +284,8 @@ newdata$cholesterol <- as.double(newdata$cholesterol)
 newdata$betadiet <- as.double(newdata$betadiet)
 
 lin_rel <- newdata %>% select(-sex, -vituse, -smokstat, -retplasma, -retdiet, -retplasma, -id)
-ggpairs(lin_rel, mapping=ggplot2::aes(colour='blue'))
+ggpairs(lin_rel, mapping=ggplot2::aes(colour='blue'), axisLabels='none')
+
 
 
 ###################################################################################################
@@ -290,6 +300,7 @@ ggpairs(lin_rel, mapping=ggplot2::aes(colour='blue'))
 
 model4 <- lm(log(betaplasma) ~ age+sex+smokstat+quetelet, data = newdata) 
 summary(model4) # Only smokstat-former not significant
+confint(model4)
 
 new_data <- data.frame(age = 50, sex='male', smokstat='never', quetelet=30)
 exp(predict(model4, new_data, interval='confidence'))
@@ -303,10 +314,13 @@ exp(predict(model4, new_data, interval='confidence'))
 
 model4.1 <- lm(log(betaplasma) ~vituse+calories+fat+fiber+alcohol+cholesterol+betadiet, data = newdata) 
 summary(model4.1)
+confint(model4.1)
+
 model4.2 <- lm(log(betaplasma) ~1, data = newdata) 
 
 model4.reduced <- step(model4.1,scope=list(lower=model4.2, upper=model4.1),k=log(nrow(newdata)))
 summary(model4.reduced)
+confint(model4.reduced)
 
 # Best model: log(betaplasma) ~ vituse + calories + fiber
 
@@ -319,10 +333,11 @@ exp(predict(model4.reduced, new_data, interval='confidence'))
 # Try to find a better model using both some of the background variables and some of the dietary factors.
 # Compare its ability to explain the variability to the models from (a) and (b).
 
-summary(model4)[8]
 summary(model4)[9]
-summary(model4.reduced)[8]
 summary(model4.reduced)[9]
+summary(model4.reduced.2)[9]
+
+AIC(model4, model4.reduced.2, model4.reduced, k=log(nrow(newdata)))
 
 model4.3 <- lm(log(betaplasma) ~vituse+calories+fat+fiber+alcohol+cholesterol+betadiet+age+sex+smokstat+quetelet, 
                data = newdata) 
@@ -377,9 +392,9 @@ abline(h=c(-2,2),col="red")
 points(newdata$fiber[outlier],r_stud[outlier],col="green", pch=19)
 
 # Cook's distance
-D <- cooks.distance(model4.reduced)
-plot(D)
-points(outlier,D[outlier],col="green", pch=19)
+Cooks_distance <- cooks.distance(model4.reduced)
+plot(Cooks_distance, xlab=FALSE, ylab=FALSE, main = "Cook's distance")
+points(outlier,Cooks_distance[outlier],col="green", pch=19)
 abline(h=4/nrow(newdata), col='red') # Limit for large datasets
 
 which(D > 0.03) # Potential problematic: 97, 233
@@ -387,21 +402,21 @@ which(D > 0.03) # Potential problematic: 97, 233
 # DFbetas
 
 dfb <- dfbetas(model4.reduced)
-plot(dfb[,1]) 
+plot(dfb[,1], ylab='Beta_0', main='DFbeta 0') 
 points(outlier,dfb[outlier,1],col="green", pch=19) # Our alcoholic friend has big impact
-which(abs(dfb[,1]) > 0.2) # 139 185 208 215 
+which(abs(dfb[,1]) > 0.2)  
 plot(dfb[,2]) 
 points(outlier,dfb[outlier,2],col="green", pch=19)
-which(abs(dfb[,2]) > 0.2) #  35 233 262 
+which(abs(dfb[,2]) > 0.2) 
 plot(dfb[,3]) 
 points(outlier,dfb[outlier,3],col="green", pch=19)
-which(abs(dfb[,3]) > 0.2) # 185 208 
-plot(dfb[,4])
+which(abs(dfb[,3]) > 0.2)  
+plot(dfb[,4], ylab='Beta_3', main='DFbeta')
 points(outlier,dfb[outlier,4],col="green", pch=19) # Our alcoholic friend has big impact
-which(abs(dfb[,4]) > 0.2) # 35 97 
-plot(dfb[,5])
+which(abs(dfb[,4]) > 0.2) 
+plot(dfb[,5], ylab='Beta_4', main='DFbeta')
 points(outlier,dfb[outlier,5],col="green", pch=19) # Our alcoholic friend has big impact
-which(abs(dfb[,5]) > 0.3) # 97 263
+which(abs(dfb[,5]) > 0.3) 
 
 # Potential problematic other observations: 
 # * 263 - high leverage, affecting beta4
