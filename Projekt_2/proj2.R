@@ -157,4 +157,18 @@ newdat.2[min(which(newdat.2$prob > 0.1)-1),] # You can allow ~ 257 cars
 #############
 ## 3.2 (i) ##
 #############
- 
+
+# Cook's distance
+Cooks_distance <- cooks.distance(model.2.1)
+plot(Cooks_distance, xlab='Observation', ylab="Cook's distance")
+which(Cooks_distance > 0.06) # Number 373 is the "worst"
+
+# DFbetas, with 373 marked green
+dfb <- dfbetas(model.2.1)
+plot(dfb[,1], main="DFbeta intercept")
+points(373,dfb[373,1],col="green", pch=19)
+
+plot(dfb[,2], main="DFbeta beta_1")
+points(373,dfb[373,2],col="green", pch=19)
+
+# One observation that could be problematic: 373
