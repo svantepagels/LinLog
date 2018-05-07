@@ -1,6 +1,7 @@
 # Load data and packages
 library(pscl)
 library(popbio)
+library(plotly)
 data <- read.delim("pm10.txt")
 
 #############
@@ -19,9 +20,6 @@ CI_right <- p_hat + error
 ## 3.1 (b) ##
 #############
 
-data$highpm10_not_cat <- data$highpm10
-data$highpm10 <- factor(data$highpm10, levels=c(0,1),
-                     labels=c("under_50", 'over_50'))
 data$time <- factor(data$time, levels=c(1,2,3,4), labels=c("01-06","06-12","12-18", "18–24"))
 with(data = data, plot(highpm10~time))
 model <- glm(highpm10 ~ time, data=data, family="binomial")
@@ -60,7 +58,7 @@ with(data=data, plot(cars~time))
 # It seems likely that the PM_10 concentration is due to the number of cars
 
 #############
-## 3.2 (b) ## Håller du med? Slide 3, lecture 8. LUDVIG
+## 3.2 (b) ## Slide 3, lecture 8
 #############
 
 model.2 <- glm(highpm10 ~ cars, data=data, family="binomial")
@@ -68,7 +66,7 @@ or <- exp(model.2$coefficients)
 ci.or <- exp(confint(model.2))
 
 # Increase with 100 cars
-(or[2])^100-1 # Hundred cars increases the odds by 4.9 %
+(or[2])^(100)-1 # Hundred cars increases the odds by 4.87 % LUDVIG
 
 #############
 ## 3.2 (c) ##
@@ -85,15 +83,17 @@ exp(ci.logodds.2) # Confidence intervals for probabilities with different number
 exp(pred.2$fit) # Expected probabilities of PM_10 > 50 ppm
 
 #############
-## 3.2 (d) ## Håller du med? Slide 3, lecture 8. LUDVIG
+## 3.2 (d) ##
 #############
 
 model.2.1 <- glm(highpm10 ~ log(cars), data=data, family="binomial")
+# Odds ratio when log(cars) increases by one (write clearly in report)
 or <- exp(model.2.1$coefficients)
-ci.or <- exp(confint(model.2.1))
+ci.or <- exp(confint(model.2.1)) 
 
 # Increase with 100 cars
-(or[2])^(log(100))-1 # Hundred cars increases the odds by 1433 % LUDVIG
+(1100/1000)^model.2$coefficients[2]-1 # Increase is 0.00454 %  
+
 
 #############
 ## 3.2 (e) ##
@@ -134,15 +134,14 @@ pR2(model.2.1)
 # For "old" model
 newdat <- data.frame(cars=seq(min(data$cars), max(data$cars),len=100))
 newdat$prob = predict(model.2, newdata=newdat, type="response")
-ksm <- ksmooth(data$cars, data$highpm10_not_cat, bandwidth = 2000)
+ksm <- ksmooth(data$cars, data$highpm10, bandwidth = 2000)
 plot(ksm$x, ksm$y, type = 'l', xlab='Cars', ylab='Prob. high PM_10')
 lines(prob ~ cars, newdat, col="green4", lwd=2)
 
 # For "new" model
 newdat <- data.frame(cars=seq(min(data$cars), max(data$cars),len=100))
 newdat$prob = predict(model.2.1, newdata=newdat, type="response")
-plot(ksm$x, ksm$y, type = 'l', xlab='Cars', ylab='Prob. high PM_10')
-lines(prob ~ cars, newdat, col="green4", lwd=2)
+lines(prob ~ cars, newdat, col="red", lwd=2)
 
 # The second model performs the best. 
 
@@ -172,3 +171,41 @@ plot(dfb[,2], main="DFbeta beta_1")
 points(373,dfb[373,2],col="green", pch=19)
 
 # One observation that could be problematic: 373
+
+
+########################################################################################################
+
+#############
+## 3.3 (a) ##
+#############
+
+#############
+## 3.3 (b) ##
+#############
+
+# Create full model and "empty" model
+
+data$winddirection <- factor(data$winddirection, levels=c(1,2,3,4), labels=c("NE","SE","SW", "NW"))
+
+fullmodel <- glm(highpm10 ~ log(cars)+temp2m+windspeed+
+                   winddirection+time+log(windspeed),
+                 data=data, family="binomial")
+summary(fullmodel) #Since log(windspeed) is significant this will be used instead of windspeed
+
+fullmodel.2 <- glm(highpm10 ~ log(cars)+temp2m+
+                   winddirection+time+log(windspeed),
+                 data=data, family="binomial")
+emptymodel <- glm(highpm10 ~ 1, data=data, family="binomial")
+summary(emptymodel)
+
+backwards = step(fullmodel.2,k = log(nrow(data))) 
+summary(backwards)
+
+forwards = step(emptymodel,
+                scope=list(lower=formula(emptymodel),upper=formula(fullmodel.2)), direction="forward",
+                k=log(nrow(data)))
+summary(forwards)
+
+# Both the fowards and backwards models propose the same choice of independent variables. 
+
+
