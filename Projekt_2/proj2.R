@@ -2,6 +2,8 @@
 library(pscl)
 library(popbio)
 library(plotly)
+library(GGally)
+library(ggplot2)
 data <- read.delim("pm10.txt")
 
 #############
@@ -206,6 +208,37 @@ forwards = step(emptymodel,
                 k=log(nrow(data)))
 summary(forwards)
 
-# Both the fowards and backwards models propose the same choice of independent variables. 
+# Both the fowards and backwards stepping models propose the same choice of independent variables.
 
+# Maybe winddirection can effect PM levels and interaction should be added? 
+par(mfrow=c(1,1))
+plot(data$winddirection~data$highpm10)
 
+winddir_model <- glm(highpm10 ~ log(cars)+winddirection*log(windspeed),
+                 data=data, family="binomial")
+summary(winddir_model) # Nope, windirection interaction didn't add enough. 
+
+# how about temperature?
+
+temp_model <- glm(highpm10 ~ log(cars)+temp2m*log(windspeed),
+                     data=data, family="binomial")
+summary(temp_model) # Kind of good, lets check BIC
+
+AIC(temp_model,k = log(nrow(data)))
+AIC(forwards,k = log(nrow(data)))
+
+# Better! Since data is relatively large the unsignificant predictor temp2m will be left. 
+
+# Is it reasonable to add interaction term? 
+data.test <- transform(data, temp_wind=temp2m*log(windspeed))
+with(data.test, plot(highpm10~temp_wind)) 
+ksm <- ksmooth(data.test$temp_wind, data.test$highpm10, bandwidth = 30)
+temp_model <- glm(highpm10 ~ temp_wind,
+                  data=data.test, family="binomial")
+summary(temp_model)
+newdat <- data.frame(temp_wind=seq(min(data.test$temp_wind), max(data.test$temp_wind),len=100))
+plot(ksm$x, ksm$y, type = 'l', xlab='temp_wind', ylab='Prob. high PM_10')
+newdat$prob = predict(temp_model, newdata=newdat, type="response")
+lines(prob ~ temp_wind, newdat, col="green4", lwd=2)
+
+# Yes, so it seems by fitting a model which's only independent variable is temp2m*log(windspeed)
