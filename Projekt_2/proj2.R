@@ -4,6 +4,7 @@ library(popbio)
 library(plotly)
 library(GGally)
 library(ggplot2)
+library(caret)
 data <- read.delim("pm10.txt")
 
 #############
@@ -133,6 +134,14 @@ AIC(model.2.1)
 pR2(model.2)
 pR2(model.2.1)
 
+# Significance of parameters
+summary(model.2)
+summary(model.2.1)
+
+# Variable importance - not used
+varImp(model.2)
+varImp(model.2.1)
+
 # It seems that the second model performs better, both in terms of Akaike scoring and 
 # pseudo R2 scoring. Since the number of explanatory variables are the same in both models
 # AIC was chosen instead of BIC.
@@ -250,3 +259,4 @@ newdat$prob = predict(temp_model, newdata=newdat, type="response")
 lines(prob ~ temp_wind, newdat, col="green4", lwd=2)
 
 # Yes, so it seems by fitting a model which's only independent variable is temp2m*log(windspeed)
+#LUDVIG - Log likelihood test should be performed https://www.r-bloggers.com/evaluating-logistic-regression-models/
