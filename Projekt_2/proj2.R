@@ -45,6 +45,9 @@ pred$se.fit # Standard error of betas
 ci.logodds <- cbind(lo = pred$fit-1.96*pred$se.fit, hi=pred$fit+1.96*pred$se.fit)
 ci.logodds # Confidence interval for betas
 
+# Expected probabilities
+exp(pred$fit)/(1+exp(pred$fit))
+
 # Confidence interval for probabilities:
 exp(ci.logodds)/(1+exp(ci.logodds)) 
 
@@ -68,7 +71,7 @@ or <- exp(model.2$coefficients)
 ci.or <- exp(confint(model.2))
 
 # Increase with 100 cars
-(or[2])^(100)-1 # Hundred cars increases the odds by 4.87 % LUDVIG
+(or[2])^(100)-1 # Hundred cars increases the odds by 4.87 % 
 
 #############
 ## 3.2 (c) ##
@@ -180,7 +183,7 @@ points(373,dfb[373,2],col="green", pch=19)
 #############
 ## 3.3 (a) ##
 #############
-
+# LUDVIG 
 #############
 ## 3.3 (b) ##
 #############
