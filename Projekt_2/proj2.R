@@ -82,10 +82,11 @@ x0 <- data.frame(cars=c(300, 3000))
 pred.2 <- predict(model.2,x0, se.fit=T)
 
 # Confidence interval for log-odds
-ci.logodds.2 <- cbind(lo = pred.2$fit-1.96*pred.2$se.fit, hi=pred.2$fit+1.96*pred.2$se.fit)
+ci.logodds.2 <- cbind(est = pred.2$fit, lo = pred.2$fit-1.96*pred.2$se.fit, hi=pred.2$fit+1.96*pred.2$se.fit)
 ci.logodds.2 # Confidence interval for betas
 exp(ci.logodds.2) # Confidence intervals for probabilities with different number of cars
 exp(pred.2$fit) # Expected probabilities of PM_10 > 50 ppm
+
 
 #############
 ## 3.2 (d) ##
@@ -97,7 +98,7 @@ or <- exp(model.2.1$coefficients)
 ci.or <- exp(confint(model.2.1)) 
 
 # Increase with 100 cars
-(1100/1000)^model.2$coefficients[2]-1 # Increase is 0.00454 %  
+(1100/1000)^model.2$coefficients[2] # Increase is 0.00454 %  
 
 
 #############
@@ -109,21 +110,25 @@ x0 <- data.frame(cars=c(300, 3000))
 pred.2.1 <- predict(model.2.1,x0, se.fit=T)
 
 # Confidence interval for log-odds
-ci.logodds.2.1 <- cbind(lo = pred.2.1$fit-1.96*pred.2.1$se.fit, hi=pred.2.1$fit+1.96*pred.2.1$se.fit)
+ci.logodds.2.1 <- cbind(est = pred.2.1$fit, lo = pred.2.1$fit-1.96*pred.2.1$se.fit, hi=pred.2.1$fit+1.96*pred.2.1$se.fit)
 ci.logodds.2.1 # Confidence interval for betas
 exp(ci.logodds.2.1) # Confidence intervals for probabilities with different number of cars
 exp(pred.2.1$fit) # Expected probabilities of PM_10 > 50 ppm
+exp(ci.logodds.2.1)[,3]-exp(ci.logodds.2.1)[,2] # Width of conf. int. new model
+exp(ci.logodds.2)[,3]-exp(ci.logodds.2)[,2] # Width of conf. int. old model
 
 # We notice a slight decrease in the expected probabilities of exceeding the threshold
-# when comparing to the previous model. 
+# when comparing to the previous model. The width of the confidence intervals are also slightly smaller
+# than in the previous model. 
 
 #############
-## 3.2 (f) ##
+## 3.2 (f) ## LUDVIG - Fler/andra mått? 
 #############
 
 # Akaike
 AIC(model.2)
 AIC(model.2.1)
+
 # r2ML = Cox-Snell, r2CU = Nagelkerke
 pR2(model.2)
 pR2(model.2.1)
