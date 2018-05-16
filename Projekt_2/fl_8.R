@@ -99,3 +99,4 @@ summary(fruitmodel)
 anova(fruitmodel)
 qchisq(1-0.05,2)
 pchisq(anova(fruitmodel)$Deviance[2],2, lower.tail = F)
+

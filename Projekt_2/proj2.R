@@ -23,6 +23,8 @@ CI_right <- p_hat + error
 ## 3.1 (b) ##
 #############
 
+# TODO: Check/change to odds ratios
+
 data$time <- factor(data$time, levels=c(1,2,3,4), labels=c("01-06","06-12","12-18", "18–24"))
 with(data = data, plot(highpm10~time))
 model <- glm(highpm10 ~ time, data=data, family="binomial")
@@ -80,13 +82,13 @@ ci.or <- exp(confint(model.2))
 
 # Prediction with standard errors
 x0 <- data.frame(cars=c(300, 3000))
-pred.2 <- predict(model.2,x0, se.fit=T)
+pred.2 <- predict(model.2,newdata=x0, se.fit=T, type = "response")
 
 # Confidence interval for log-odds
 ci.logodds.2 <- cbind(est = pred.2$fit, lo = pred.2$fit-1.96*pred.2$se.fit, hi=pred.2$fit+1.96*pred.2$se.fit)
 ci.logodds.2 # Confidence interval for betas
-exp(ci.logodds.2) # Confidence intervals for probabilities with different number of cars
-exp(pred.2$fit) # Expected probabilities of PM_10 > 50 ppm
+#exp(ci.logodds.2) # Confidence intervals for probabilities with different number of cars
+#exp(pred.2$fit) # Expected probabilities of PM_10 > 50 ppm
 
 
 #############
@@ -108,15 +110,15 @@ ci.or <- exp(confint(model.2.1))
 
 # Prediction with standard errors
 x0 <- data.frame(cars=c(300, 3000))
-pred.2.1 <- predict(model.2.1,x0, se.fit=T)
+pred.2.1 <- predict(model.2.1,newdata=x0, se.fit=T, type='response')
 
 # Confidence interval for log-odds
 ci.logodds.2.1 <- cbind(est = pred.2.1$fit, lo = pred.2.1$fit-1.96*pred.2.1$se.fit, hi=pred.2.1$fit+1.96*pred.2.1$se.fit)
 ci.logodds.2.1 # Confidence interval for betas
 exp(ci.logodds.2.1) # Confidence intervals for probabilities with different number of cars
-exp(pred.2.1$fit) # Expected probabilities of PM_10 > 50 ppm
-exp(ci.logodds.2.1)[,3]-exp(ci.logodds.2.1)[,2] # Width of conf. int. new model
-exp(ci.logodds.2)[,3]-exp(ci.logodds.2)[,2] # Width of conf. int. old model
+#exp(pred.2.1$fit) # Expected probabilities of PM_10 > 50 ppm
+#exp(ci.logodds.2.1)[,3]-exp(ci.logodds.2.1)[,2] # Width of conf. int. new model
+#exp(ci.logodds.2)[,3]-exp(ci.logodds.2)[,2] # Width of conf. int. old model
 
 # We notice a slight decrease in the expected probabilities of exceeding the threshold
 # when comparing to the previous model. The width of the confidence intervals are also slightly smaller
@@ -155,14 +157,48 @@ newdat <- data.frame(cars=seq(min(data$cars), max(data$cars),len=100))
 newdat$prob = predict(model.2, newdata=newdat, type="response")
 ksm <- ksmooth(data$cars, data$highpm10, bandwidth = 2000)
 plot(ksm$x, ksm$y, type = 'l', xlab='Cars', ylab='Prob. high PM_10')
-lines(prob ~ cars, newdat, col="green4", lwd=2)
+lines(prob ~ cars, newdat, col="blue", lwd=2)
+
+# calculate the log odds and their CI:
+phat <- predict(model.2, newdata = newdat, se.fit=T)
+ci <- cbind(lo=phat$fit-1.96*phat$se.fit,
+            hi=phat$fit+1.96*phat$se.fit)
+
+# ... and transform them into probabilies
+p <- exp(phat$fit)/(1+exp(phat$fit))
+ci.p <- exp(ci)/(1+exp(ci))
+
+# add them to the plot:
+lines(newdat$cars,ci.p[,1], col="blue", lty=2)
+lines(newdat$cars,ci.p[,2], col="blue", lty=2)
 
 # For "new" model
 newdat <- data.frame(cars=seq(min(data$cars), max(data$cars),len=100))
 newdat$prob = predict(model.2.1, newdata=newdat, type="response")
 lines(prob ~ cars, newdat, col="red", lwd=2)
 
-# The second model performs the best. 
+# calculate the log odds and their CI:
+phat <- predict(model.2.1, newdata = newdat, se.fit=T)
+ci <- cbind(lo=phat$fit-1.96*phat$se.fit,
+            hi=phat$fit+1.96*phat$se.fit)
+
+# ... and transform them into probabilies
+p <- exp(phat$fit)/(1+exp(phat$fit))
+ci.p <- exp(ci)/(1+exp(ci))
+
+# add them to the plot:
+lines(newdat$cars,ci.p[,1], col="red", lty=2)
+lines(newdat$cars,ci.p[,2], col="red", lty=2)
+
+legend(2500,.23, c("Kernel smoother", "Cars", "Logged cars"),
+       col=c("black", "blue", "red"), lty=c(1,1,2))
+
+
+# The second model (red) performs the best.
+
+
+
+
 
 #############
 ## 3.2 (h) ##
@@ -176,10 +212,12 @@ newdat.2[min(which(newdat.2$prob > 0.1)-1),] # You can allow ~ 257 cars
 ## 3.2 (i) ##
 #############
 
+par(mfrow=c(1,3))
 # Cook's distance
 Cooks_distance <- cooks.distance(model.2.1)
-plot(Cooks_distance, xlab='Observation', ylab="Cook's distance")
+plot(Cooks_distance, xlab='Observation', ylab="Cook's distance", main = "Cook's Distance")
 which(Cooks_distance > 0.06) # Number 373 is the "worst"
+points(373,Cooks_distance[373],col="green", pch=19)
 
 # DFbetas, with 373 marked green
 dfb <- dfbetas(model.2.1)
@@ -190,7 +228,6 @@ plot(dfb[,2], main="DFbeta beta_1")
 points(373,dfb[373,2],col="green", pch=19)
 
 # One observation that could be problematic: 373
-
 
 ########################################################################################################
 
