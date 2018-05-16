@@ -26,11 +26,12 @@ CI_right <- p_hat + error
 data$time <- factor(data$time, levels=c(1,2,3,4), labels=c("01-06","06-12","12-18", "18–24"))
 with(data = data, plot(highpm10~time))
 model <- glm(highpm10 ~ time, data=data, family="binomial")
-summary(model)
+
 
 # Confidence intervals
 confint(model) # log odds ratios (beta)
 exp(confint(model)) # odds ratios exp(beta)
+exp(summary(model)$coefficients[,1]) # Expected odds-ratios
 
 #############
 ## 3.1 (c) ##
@@ -48,6 +49,7 @@ ci.logodds # Confidence interval for betas
 
 # Expected probabilities
 exp(pred$fit)/(1+exp(pred$fit))
+predict(model,x0, type = "response") # Alternative method
 
 # Confidence interval for probabilities:
 exp(ci.logodds)/(1+exp(ci.logodds)) 
@@ -74,6 +76,7 @@ ci.or <- exp(confint(model.2))
 # Increase with 100 cars
 (or[2])^(100)-1 # Hundred cars increases the odds by 4.87 % 
 
+
 #############
 ## 3.2 (c) ##
 #############
@@ -85,8 +88,13 @@ pred.2 <- predict(model.2,x0, se.fit=T)
 # Confidence interval for log-odds
 ci.logodds.2 <- cbind(est = pred.2$fit, lo = pred.2$fit-1.96*pred.2$se.fit, hi=pred.2$fit+1.96*pred.2$se.fit)
 ci.logodds.2 # Confidence interval for betas
-exp(ci.logodds.2) # Confidence intervals for probabilities with different number of cars
-exp(pred.2$fit) # Expected probabilities of PM_10 > 50 ppm
+
+# Expected probabilities
+exp(pred.2$fit)/(1+exp(pred.2$fit))
+predict(model.2,x0, type = "response") # Alternative method
+
+# Confidence interval for probabilities:
+exp(ci.logodds.2)/(1+exp(ci.logodds.2)) 
 
 
 #############
@@ -105,6 +113,21 @@ ci.or <- exp(confint(model.2.1))
 #############
 ## 3.2 (e) ##
 #############
+
+# Prediction with standard errors
+x0 <- data.frame(cars=c(300, 3000))
+pred.2.1 <- predict(model.2.1,x0, se.fit=T)
+
+# Confidence interval for log-odds
+ci.logodds.2.1 <- cbind(est = pred.2.1$fit, lo = pred.2.1$fit-1.96*pred.2.1$se.fit, hi=pred.2.1$fit+1.96*pred.2.1$se.fit)
+ci.logodds.2.1 # Confidence interval for betas
+
+# Expected probabilities
+exp(pred.2.1$fit)/(1+exp(pred.2.1$fit))
+predict(model.2.1,x0, type = "response") # Alternative method
+
+# Confidence interval for probabilities:
+exp(ci.logodds.2.1)/(1+exp(ci.logodds.2.1)) 
 
 # Prediction with standard errors
 x0 <- data.frame(cars=c(300, 3000))
@@ -147,7 +170,7 @@ varImp(model.2.1)
 # AIC was chosen instead of BIC.
 
 #############
-## 3.2 (g) ##
+## 3.2 (g) ## 
 #############
 
 # For "old" model
