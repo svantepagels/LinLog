@@ -258,7 +258,7 @@ winddir_model <- glm(highpm10 ~ log(cars)+winddirection*log(windspeed),
                  data=data, family="binomial")
 summary(winddir_model) # Nope, windirection interaction didn't add enough. 
 
-# how about temperature?
+# how about temperature? (interaction with temperature)
 
 temp_model <- glm(highpm10 ~ log(cars)+temp2m*log(windspeed),
                      data=data, family="binomial")
