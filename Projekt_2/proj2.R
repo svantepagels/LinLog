@@ -107,7 +107,7 @@ or <- exp(model.2.1$coefficients)
 ci.or <- exp(confint(model.2.1)) 
 
 # Increase with 100 cars
-(1100/1000)^model.2$coefficients[2] # Increase is 0.00454 %  
+(1100/1000)^model.2.1$coefficients[2] # Increase is 0.00454 %  
 
 
 #############
@@ -266,8 +266,13 @@ summary(temp_model) # Kind of good, lets check BIC
 
 AIC(temp_model,k = log(nrow(data)))
 AIC(forwards,k = log(nrow(data)))
+pR2(temp_model)
+pR2(forwards)
 
-# Better! Since data is relatively large the unsignificant predictor temp2m will be left. 
+# Better! Since data is relatively large the unsignificant predictor temp2m will be left.
+
+# Final model highpm10 ~ log(cars)+temp2m*log(windspeed) with a try to explain why the interaction improves the model
+
 
 # Is it reasonable to add interaction term? 
 data.test <- transform(data, temp_wind=temp2m*log(windspeed))
@@ -283,3 +288,4 @@ lines(prob ~ temp_wind, newdat, col="green4", lwd=2)
 
 # Yes, so it seems by fitting a model which's only independent variable is temp2m*log(windspeed)
 #LUDVIG - Log likelihood test should be performed https://www.r-bloggers.com/evaluating-logistic-regression-models/
+# Eller inte, hade det varit jag hade jag skitit i det.
