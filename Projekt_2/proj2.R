@@ -28,11 +28,12 @@ CI_right <- p_hat + error
 data$time <- factor(data$time, levels=c(1,2,3,4), labels=c("01-06","06-12","12-18", "18–24"))
 with(data = data, plot(highpm10~time))
 model <- glm(highpm10 ~ time, data=data, family="binomial")
-summary(model)
+
 
 # Confidence intervals
 confint(model) # log odds ratios (beta)
 exp(confint(model)) # odds ratios exp(beta)
+exp(summary(model)$coefficients[,1]) # Expected odds-ratios
 
 #############
 ## 3.1 (c) ##
@@ -50,6 +51,7 @@ ci.logodds # Confidence interval for betas
 
 # Expected probabilities
 exp(pred$fit)/(1+exp(pred$fit))
+predict(model,x0, type = "response") # Alternative method
 
 # Confidence interval for probabilities:
 exp(ci.logodds)/(1+exp(ci.logodds)) 
@@ -76,6 +78,7 @@ ci.or <- exp(confint(model.2))
 # Increase with 100 cars
 (or[2])^(100)-1 # Hundred cars increases the odds by 4.87 % 
 
+
 #############
 ## 3.2 (c) ##
 #############
@@ -87,8 +90,17 @@ pred.2 <- predict(model.2,newdata=x0, se.fit=T, type = "response")
 # Confidence interval for log-odds
 ci.logodds.2 <- cbind(est = pred.2$fit, lo = pred.2$fit-1.96*pred.2$se.fit, hi=pred.2$fit+1.96*pred.2$se.fit)
 ci.logodds.2 # Confidence interval for betas
+
 #exp(ci.logodds.2) # Confidence intervals for probabilities with different number of cars
 #exp(pred.2$fit) # Expected probabilities of PM_10 > 50 ppm
+
+# Expected probabilities
+exp(pred.2$fit)/(1+exp(pred.2$fit))
+predict(model.2,x0, type = "response") # Alternative method
+
+# Confidence interval for probabilities:
+exp(ci.logodds.2)/(1+exp(ci.logodds.2)) 
+
 
 
 #############
@@ -101,7 +113,7 @@ or <- exp(model.2.1$coefficients)
 ci.or <- exp(confint(model.2.1)) 
 
 # Increase with 100 cars
-(1100/1000)^model.2$coefficients[2] # Increase is 0.00454 %  
+(1100/1000)^model.2.1$coefficients[2] # Increase is 0.00454 %  
 
 
 #############
@@ -111,6 +123,21 @@ ci.or <- exp(confint(model.2.1))
 # Prediction with standard errors
 x0 <- data.frame(cars=c(300, 3000))
 pred.2.1 <- predict(model.2.1,newdata=x0, se.fit=T, type='response')
+
+# Confidence interval for log-odds
+ci.logodds.2.1 <- cbind(est = pred.2.1$fit, lo = pred.2.1$fit-1.96*pred.2.1$se.fit, hi=pred.2.1$fit+1.96*pred.2.1$se.fit)
+ci.logodds.2.1 # Confidence interval for betas
+
+# Expected probabilities
+exp(pred.2.1$fit)/(1+exp(pred.2.1$fit))
+predict(model.2.1,x0, type = "response") # Alternative method
+
+# Confidence interval for probabilities:
+exp(ci.logodds.2.1)/(1+exp(ci.logodds.2.1)) 
+
+# Prediction with standard errors
+x0 <- data.frame(cars=c(300, 3000))
+pred.2.1 <- predict(model.2.1,x0, se.fit=T)
 
 # Confidence interval for log-odds
 ci.logodds.2.1 <- cbind(est = pred.2.1$fit, lo = pred.2.1$fit-1.96*pred.2.1$se.fit, hi=pred.2.1$fit+1.96*pred.2.1$se.fit)
@@ -149,7 +176,7 @@ varImp(model.2.1)
 # AIC was chosen instead of BIC.
 
 #############
-## 3.2 (g) ##
+## 3.2 (g) ## 
 #############
 
 # For "old" model
@@ -272,7 +299,7 @@ winddir_model <- glm(highpm10 ~ log(cars)+winddirection*log(windspeed),
                  data=data, family="binomial")
 summary(winddir_model) # Nope, windirection interaction didn't add enough. 
 
-# how about temperature?
+# how about temperature? (interaction with temperature)
 
 temp_model <- glm(highpm10 ~ log(cars)+temp2m*log(windspeed),
                      data=data, family="binomial")
@@ -280,8 +307,13 @@ summary(temp_model) # Kind of good, lets check BIC
 
 AIC(temp_model,k = log(nrow(data)))
 AIC(forwards,k = log(nrow(data)))
+pR2(temp_model)
+pR2(forwards)
 
-# Better! Since data is relatively large the unsignificant predictor temp2m will be left. 
+# Better! Since data is relatively large the unsignificant predictor temp2m will be left.
+
+# Final model highpm10 ~ log(cars)+temp2m*log(windspeed) with a try to explain why the interaction improves the model
+
 
 # Is it reasonable to add interaction term? 
 data.test <- transform(data, temp_wind=temp2m*log(windspeed))
@@ -297,3 +329,4 @@ lines(prob ~ temp_wind, newdat, col="green4", lwd=2)
 
 # Yes, so it seems by fitting a model which's only independent variable is temp2m*log(windspeed)
 #LUDVIG - Log likelihood test should be performed https://www.r-bloggers.com/evaluating-logistic-regression-models/
+# Eller inte, hade det varit jag hade jag skitit i det.
