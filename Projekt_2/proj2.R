@@ -298,6 +298,7 @@ plot(data$winddirection~data$highpm10)
 winddir_model <- glm(highpm10 ~ log(cars)+winddirection*log(windspeed),
                  data=data, family="binomial")
 summary(winddir_model) # Nope, windirection interaction didn't add enough. 
+AIC(winddir_model,k = log(nrow(data)))
 
 # how about temperature? (interaction with temperature)
 
@@ -314,6 +315,20 @@ pR2(forwards)
 
 # Final model highpm10 ~ log(cars)+temp2m*log(windspeed) with a try to explain why the interaction improves the model
 
+# Skräp
+###############################################################################################################
+newdat_10_deg <- data.frame(cars=rep(mean(data$cars),len=100),temp2m=rep(3,len=100), 
+                     windspeed=seq(min(data$windspeed), max(data$windspeed),len=100))
+newdat_10_deg$prob = predict(temp_model, newdata=newdat_10_deg, type="response")
+
+# Take an interval of data depending on the temperature
+colder <- data[data$temp2m >-3,]
+colder <- data[data$temp2m>3,]
+ksm <- ksmooth(colder$windspeed, colder$highpm10, bandwidth = 10)
+plot(ksm$x, ksm$y, type = 'l', xlab='Windspeed', ylab='Prob. high PM_10', ylim = c(0.1,0.4))
+lines(prob ~ windspeed, newdat_10_deg, col="blue", lwd=2)
+
+###############################################################################################################
 
 # Is it reasonable to add interaction term? 
 data.test <- transform(data, temp_wind=temp2m*log(windspeed))

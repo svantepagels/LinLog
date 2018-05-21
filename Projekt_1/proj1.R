@@ -216,13 +216,13 @@ hist(residuals3.2, breaks=20, xlab='Residuals', main='Histogram of residuals')
 # b) 
 newdata$smokstat <- factor(newdata$smokstat, levels=c(1,2,3), 
                            labels = c('never', 'former', 'current'))
-model3.3 <- lm(log(betaplasma) ~ smokstat, data = newdata)
+model3.3 <- lm(betaplasma ~ smokstat, data = newdata)
 summary(model3.3)
 
-model3.4 <- lm(log(betaplasma) ~ relevel(smokstat, ref = 3), data = newdata)
+model3.4 <- lm(betaplasma ~ relevel(smokstat, ref = 3), data = newdata)
 summary(model3.4)
 
-model3.4.1 <- lm(log(betaplasma) ~ relevel(smokstat, ref = 2), data = newdata)
+model3.4.1 <- lm(betaplasma ~ relevel(smokstat, ref = 2), data = newdata)
 summary(model3.4.1)
 
 # Standard error increased. Fewer smokers lead to more uncertainty. 
@@ -303,7 +303,7 @@ summary(model4) # Only smokstat-former not significant
 confint(model4)
 
 new_data <- data.frame(age = 50, sex='male', smokstat='never', quetelet=30)
-exp(predict(model4, new_data, interval='prediction'))
+exp(predict(model4, new_data, interval='confidence'))
 
 # Fit a model using the dietary factors (vituse, calories, fat, fiber, alcohol, cholesterol and betadiet) instead.
 # Are all the variables significant? If not, use a stepwise procedure to reduce the model. 
@@ -325,7 +325,7 @@ confint(model4.reduced)
 # Best model: log(betaplasma) ~ vituse + calories + fiber
 
 new_data <- data.frame(vituse='no', calories=1200, fiber=20)
-exp(predict(model4.reduced, new_data, interval='prediction'))
+exp(predict(model4.reduced, new_data, interval='confidence'))
 
 # We now have two competing models, the background variables model in (a) and the (reduced)
 # dietary factors model in (b). Compare the two models regarding, e.g., their ability to explain the
