@@ -18,6 +18,21 @@ pr.lm <- predict(lm.fit,test)
 MSE.lm <- sum((pr.lm - test$medv)^2)/nrow(test)
 
 # Preparing to fit the neural network
+maxs <- apply(data, 2, max) 
+mins <- apply(data, 2, min)
+
+scaled <- as.data.frame(scale(data, center = mins, scale = maxs - mins))
+
+train_ <- scaled[index,]
+test_ <- scaled[-index,]
+
+library(neuralnet)
+n <- names(train_)
+f <- as.formula(paste("medv ~", paste(n[!n %in% "medv"], collapse = " + ")))
+nn <- neuralnet(f,data=train_,hidden=c(5,3),linear.output=T)
+
+plot(nn)
+
 WELCOME!
   
   Here you will find daily news and tutorials about R, contributed by over 750 bloggers. 
