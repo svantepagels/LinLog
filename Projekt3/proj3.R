@@ -83,13 +83,15 @@ max_temp_dt <- max_temp_dt %>%
          max_temp = value) %>%
   select(date, max_temp)
 
-#raw.result <- GET("https://opendata-download-metobs.smhi.se/api/version/latest/parameter/10/station/71415/period/latest-months/data.json")
-#this.raw.content <- rawToChar(raw.result$content)
-#this.content <- fromJSON(this.raw.content)
-#sun_dt <- this.content$value
+################# Read old values for temp, rain, max_temp, sun
+temp_old <- read.delim("average_temp.txt") # id=2
+rain_old <- read.delim("rain_day.txt") # id=5
+max_temp_old <- read.delim("max_temp.txt") # id=20
+sun <- read.delim("sun.txt") # id=10
 
-
-#################
+rain_old <- 
+max_temp_old <- 
+sun <- 
 
 ###### Recovery SMHI API data ######
 final <- full_join(dataset, temp_dt, by = c("date"))
@@ -100,6 +102,8 @@ head(final)
 final <- final %>% filter(product_type_web == "Salad Proteins")
 
 plot(final$rain, final$weight)
+
+
 
 
 
