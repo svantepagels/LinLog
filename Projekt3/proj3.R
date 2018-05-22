@@ -3,6 +3,7 @@ library(lubridate)
 library(httr)
 library(jsonlite)
 library(dplyr)
+library(data.table)
 
 ###### Load Picadeli data ######
 picadeli_18 <- readRDS(file = "picadeli_data_18.rds")
@@ -83,15 +84,15 @@ max_temp_dt <- max_temp_dt %>%
          max_temp = value) %>%
   select(date, max_temp)
 
-################# Read old values for temp, rain, max_temp, sun
+################# Read old values for temp, rain, max_temp, sun and merge
 temp_old <- read.delim("average_temp.txt") # id=2
 rain_old <- read.delim("rain_day.txt") # id=5
-max_temp_old <- read.delim("max_temp.txt") # id=20
-sun <- read.delim("sun.txt") # id=10
+max_temp_old <- read.delim("max_temp.txt", ",") # id=20
+max_temp_old <- as.data.table(max_temp_old) 
+  
+head(max_temp_old)
 
-rain_old <- 
-max_temp_old <- 
-sun <- 
+sun <- read.delim("sun.txt") # id=10
 
 ###### Recovery SMHI API data ######
 final <- full_join(dataset, temp_dt, by = c("date"))
