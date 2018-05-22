@@ -18,9 +18,6 @@ dataset_18 <- picadeli_18 %>%
   
 head(dataset_18)
 
-t <- dataset_18 %>% filter(product_type_web == "Salad Cheese")
-
-plot(t$date, t$weight)
 # Load new picadeli data
 data_16_17 <- trays %>% filter(customer_id == 2812) %>%
   arrange(time_added) %>%
@@ -71,7 +68,7 @@ rain_dt <- this.content$value
 
 rain_dt <- rain_dt %>% 
   mutate(date = as.Date(ref), 
-         rain = value) %>%
+         rain = as.numeric(value)) %>%
   select(date, rain)
 
 raw.result <- GET("https://opendata-download-metobs.smhi.se/api/version/latest/parameter/20/station/71420/period/latest-months/data.json")
@@ -81,34 +78,79 @@ max_temp_dt <- this.content$value
 
 max_temp_dt <- max_temp_dt %>% 
   mutate(date = as.Date(ref), 
-         max_temp = value) %>%
+         max_temp = as.numeric(value)) %>%
   select(date, max_temp)
 
 ################# Read old values for temp, rain, max_temp, sun and merge
-temp_old <- read.delim("average_temp.txt") # id=2
-rain_old <- read.delim("rain_day.txt") # id=5
-max_temp_old <- read.delim("max_temp.txt", ",") # id=20
-max_temp_old <- as.data.table(max_temp_old) 
+temp_old <- read.delim("average_temp.txt", sep=',') # id=2
+rain_old <- read.delim("rain_day.txt", sep=',') # id=5
+#max_temp_old <- read.delim("max_temp.txt", ",") # id=20
+#sun <- read.delim("sun.txt", sep=',')
+
+# Merge
+head(temp_dt)
+temp_dt <- temp_dt %>% 
+  mutate(avg_temp = temp) %>%
+  select(date, avg_temp)
+
+temp_old <- temp_old %>% mutate(date = as.Date(date))
+avg_temp <- rbind(temp_old, temp_dt)
+
+rain_old <- rain_old %>% mutate(date = as.Date(date))
+
+rain <- rbind(rain_old, rain_dt)
+avg_temp <- rbind(temp_old, temp_dt)
   
-head(max_temp_old)
+#TODO: Sun + maxtemp
+#sun <- read.delim("sun.txt", sep = ",") # id=10
 
-sun <- read.delim("sun.txt") # id=10
+rain <- subset(rain, date > "2016-01-01") 
+avg_temp <- subset(avg_temp, date > "2016-01-01")
 
-###### Recovery SMHI API data ######
-final <- full_join(dataset, temp_dt, by = c("date"))
-final <- full_join(final, rain_dt, by = c("date"))
+###### Merge SMHI API data with picadli data ######
+final <- full_join(final_pic_type, rain, by = c("date"))
+final <- full_join(final, avg_temp, by = c("date"))
 final <- final[complete.cases(final), ]
-head(final)
-
-final <- final %>% filter(product_type_web == "Salad Proteins")
-
-plot(final$rain, final$weight)
 
 
+final <- final %>%
+  mutate(year = year(date),
+         weekday = wday(date)) %>%  # 2 = Monday, 1= sunday
+  mutate(weekend = ifelse(weekday == 1 || weekday == 7, TRUE, FALSE)) %>%
+  mutate(month = month(date), 
+         quarter = quarter(date))
+
+
+final_date <- final %>%
+  group_by(date, rain, avg_temp) %>%
+  summarise(weight = sum(weight)) %>%
+  mutate(year = year(date),
+         weekday = wday(date)) %>%  # 2 = Monday, 1= sunday
+  mutate(weekend = ifelse(weekday == 1 || weekday == 7, TRUE, FALSE)) %>%
+  mutate(month = month(date), 
+         quarter = quarter(date))
+
+final <- write.csv(final, "final.csv")
+final_date <- write.csv(final. "final.csv")
+
+################## TO ANNA 2018 ----
+final <- full_join(dataset_18, temp_dt, by = c("date"))
+final <- full_join(final, rain_dt, by = c("date"))
+final <- full_join(final, max_temp_dt, by = c("date"))
+
+final <- final %>%
+  mutate(year = year(date),
+         weekday = wday(date)) %>%  # 2 = Monday, 1= sunday
+  mutate(weekend = ifelse(weekday == 1 || weekday == 7, TRUE, FALSE)) %>%
+  mutate(month = month(date), 
+         quarter = quarter(date))
+
+write.csv(final, "data_examlpe.csv")
 
 
 
-###### Load SMHI API data ######
+
+###### SLASK######----
 # Göteborg 71420
 # Medelvärde lufttemp per dygn:  2
 # Nederbördsmängd per dygn : 5
