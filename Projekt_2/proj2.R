@@ -5,6 +5,7 @@ library(plotly)
 library(GGally)
 library(ggplot2)
 library(caret)
+library(epiDisplay)
 data <- read.delim("pm10.txt")
 
 #############
@@ -225,8 +226,6 @@ legend(2500,.23, c("Kernel smoother", "Cars", "Logged cars"),
 
 
 
-
-
 #############
 ## 3.2 (h) ##
 #############
@@ -262,9 +261,12 @@ points(373,dfb[373,2],col="green", pch=19)
 ## 3.3 (a) ##
 #############
 
+model.2.2 <- glm(highpm10 ~ log(cars)+time, data=data, family="binomial")
 
+# Deviance test
+lrtest(model.2.2, model.2.1)
+model.2.1$deviance-model.2.2$deviance
 
- 
 #############
 ## 3.3 (b) ##
 #############
