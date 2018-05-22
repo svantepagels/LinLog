@@ -78,8 +78,8 @@ max_temp_dt <- this.content$value
 
 max_temp_dt <- max_temp_dt %>% 
   mutate(date = as.Date(ref), 
-         max_temp = as.numeric(value)) %>%
-  select(date, max_temp)
+         max_temp = as.numeric(value))
+max_temp_dt <- max_temp_dt[, c("date", "value")]
 
 ################# Read old values for temp, rain, max_temp, sun and merge
 temp_old <- read.delim("average_temp.txt", sep=',') # id=2
